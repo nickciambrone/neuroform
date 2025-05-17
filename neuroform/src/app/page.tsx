@@ -2,17 +2,9 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { PlaceholderLogo } from "@/components/ui/logo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  Sparkles, FileText, PenTool, UserCircle,
-  Brain,
-  Workflow,
-  Cpu,
-  Settings2,
-  LayoutTemplate,
-  ScanText,
+  Sparkles, FileText, PenTool, 
   Activity,
 } from "lucide-react";
 
@@ -22,7 +14,7 @@ const apps = [
     icon: <FileText className="h-6 w-6 text-primary" />,
     description:
       "Extract key data from PDFs using AI. Configure search targets, upload forms, and export results with ease.",
-    path: "/pdf-reader",
+    path: "/reader",
   },
   {
     name: "PDF Writer (Coming Soon)",
@@ -49,31 +41,7 @@ export default function NeuroformHomepage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex flex-col">
-      <header className="px-6 py-10 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <span style={{ display: "flex" }}>
-
-          <div style={{ padding: '8px' }}>
-            <Brain className="h-8 w-8 text-primary" />
-
-          </div>
-
-
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Neuroform
-          </h1>
-        </span>
-
-        <div className="flex items-center space-x-4">
-          {isAuthenticated ? (
-             <UserCircle className="h-8 w-8 text-primary" />
-
-          ) : (
-            <Button variant="default" size="sm" onClick={() => alert("Trigger auth flow")}>
-              Sign In / Sign Up
-            </Button>
-          )}
-        </div>
-      </header>
+     
 
       <main className="px-6 max-w-6xl mx-auto flex-1 grid gap-8 sm:grid-cols-3">
         {/* Apps section - spans 2 cols */}
