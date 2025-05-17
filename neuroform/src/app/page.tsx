@@ -3,8 +3,18 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PlaceholderLogo } from "@/components/ui/logo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles, FileText, PenTool, UserCircle } from "lucide-react";
+import {
+  Sparkles, FileText, PenTool, UserCircle,
+  Brain,
+  Workflow,
+  Cpu,
+  Settings2,
+  LayoutTemplate,
+  ScanText,
+  Activity,
+} from "lucide-react";
 
 const apps = [
   {
@@ -40,9 +50,18 @@ export default function NeuroformHomepage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex flex-col">
       <header className="px-6 py-10 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-          Neuroform
-        </h1>
+        <span style={{ display: "flex" }}>
+        
+      <div style={{padding:'8px'}}>
+      <Brain className="h-8 w-8 text-primary" />
+
+      </div>
+
+
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Neuroform
+          </h1>
+        </span>
 
         <div className="flex items-center space-x-4">
           <UserCircle className="h-8 w-8 text-primary" />
@@ -64,9 +83,8 @@ export default function NeuroformHomepage() {
           {apps.map((app, i) => (
             <Card
               key={i}
-              className={`transition hover:shadow-xl cursor-pointer ${
-                app.disabled ? "opacity-60 cursor-not-allowed" : ""
-              }`}
+              className={`transition hover:shadow-xl cursor-pointer ${app.disabled ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               onClick={() => {
                 if (!app.disabled) router.push(app.path);
               }}
