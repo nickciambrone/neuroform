@@ -51,11 +51,11 @@ export default function NeuroformHomepage() {
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex flex-col">
       <header className="px-6 py-10 flex justify-between items-center max-w-6xl mx-auto w-full">
         <span style={{ display: "flex" }}>
-        
-      <div style={{padding:'8px'}}>
-      <Brain className="h-8 w-8 text-primary" />
 
-      </div>
+          <div style={{ padding: '8px' }}>
+            <Brain className="h-8 w-8 text-primary" />
+
+          </div>
 
 
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
@@ -64,11 +64,9 @@ export default function NeuroformHomepage() {
         </span>
 
         <div className="flex items-center space-x-4">
-          <UserCircle className="h-8 w-8 text-primary" />
           {isAuthenticated ? (
-            <Button variant="outline" size="sm" onClick={() => alert("Sign out placeholder")}>
-              Sign Out
-            </Button>
+             <UserCircle className="h-8 w-8 text-primary" />
+
           ) : (
             <Button variant="default" size="sm" onClick={() => alert("Trigger auth flow")}>
               Sign In / Sign Up
@@ -79,11 +77,11 @@ export default function NeuroformHomepage() {
 
       <main className="px-6 max-w-6xl mx-auto flex-1 grid gap-8 sm:grid-cols-3">
         {/* Apps section - spans 2 cols */}
-        <section className="sm:col-span-2 grid gap-8 sm:grid-cols-2 lg:grid-cols-2">
+        <section className="sm:col-span-2 grid gap-8 sm:grid-cols-2 lg:grid-cols-2 items-start">
           {apps.map((app, i) => (
             <Card
               key={i}
-              className={`transition hover:shadow-xl cursor-pointer ${app.disabled ? "opacity-60 cursor-not-allowed" : ""
+              className={`min-h-[180px] transition hover:shadow-xl cursor-pointer ${app.disabled ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               onClick={() => {
                 if (!app.disabled) router.push(app.path);
@@ -103,8 +101,11 @@ export default function NeuroformHomepage() {
         </section>
 
         {/* Activity pane */}
-        <aside className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex flex-col">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+        <aside className="rounded-lg p-6 flex flex-col border border-gray-200 dark:border-gray-800 bg-muted/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Recent Activity</h2>
+          </div>
           <ul className="space-y-3 flex-1 overflow-auto">
             {recentActivity.map(({ id, action, date }) => (
               <li key={id} className="border-b border-gray-200 dark:border-gray-700 pb-2 last:border-none">
@@ -119,6 +120,7 @@ export default function NeuroformHomepage() {
             </p>
           )}
         </aside>
+
       </main>
 
       <footer className="mt-20 text-center px-6 py-8 border-t border-gray-200 dark:border-gray-800 max-w-6xl mx-auto w-full">
