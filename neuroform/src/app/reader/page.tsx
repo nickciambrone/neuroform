@@ -26,9 +26,9 @@ export default function AppShell() {
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="grid grid-cols-3 mb-6">
-          <TabsTrigger value="search">1. Search Targets</TabsTrigger>
-          <TabsTrigger value="process">2. Process PDF</TabsTrigger>
-          <TabsTrigger value="history">3. History</TabsTrigger>
+          <TabsTrigger value="search">Search Targets</TabsTrigger>
+          <TabsTrigger value="process">Process PDF</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="search">
