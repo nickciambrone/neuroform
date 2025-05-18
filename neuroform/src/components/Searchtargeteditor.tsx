@@ -66,23 +66,30 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                     {targets.map((target, index) => (
                         <div
                             key={index}
-                            className="border rounded-lg p-4 bg-gray-50 dark:bg-zinc-800"
+                            className="flex items-center gap-4 border rounded-lg p-4 bg-gray-50 dark:bg-zinc-800"
                         >
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1 pr-2">
-                                    <Input
-                                        placeholder="Name of field (e.g., Invoice Number)"
-                                        value={target.name}
-                                        onChange={(e) => handleChange(index, "name", e.target.value)}
-                                    />
-                                </div>
+                            <div className="flex-1 space-y-2">
+                                <Input
+                                    placeholder="Name of field (e.g., Invoice Number)"
+                                    value={target.name}
+                                    onChange={(e) => handleChange(index, "name", e.target.value)}
+                                />
+                                <Textarea
+                                    placeholder="Describe what you're trying to extract..."
+                                    value={target.description}
+                                    onChange={(e) => handleChange(index, "description", e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex items-center">
                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <button
                                             type="button"
                                             className="text-zinc-400 hover:text-red-500 transition"
+                                            aria-label="Delete search target"
                                         >
-                                            <Trash size={18} />
+                                            <Trash size={20} />
                                         </button>
                                     </DialogTrigger>
                                     <DialogContent>
@@ -106,12 +113,6 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                                     </DialogContent>
                                 </Dialog>
                             </div>
-
-                            <Textarea
-                                placeholder="Describe what you're trying to extract..."
-                                value={target.description}
-                                onChange={(e) => handleChange(index, "description", e.target.value)}
-                            />
                         </div>
                     ))}
 
@@ -120,6 +121,7 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                         Add Target
                     </Button>
                 </CardContent>
+
 
             </Card>
 
