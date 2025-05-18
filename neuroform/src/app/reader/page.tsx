@@ -47,6 +47,7 @@ export default function AppShell() {
               // simulate processing
               setTimeout(() => handlePDFProcessed(file), 1000);
             }}
+            setTab={setTab}
           />
         </TabsContent>
 
