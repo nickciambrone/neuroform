@@ -1,94 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileSearch, FileText, History } from "lucide-react";
+import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import SearchTargetEditor from "@/components/Searchtargeteditor";
+import ProcessPDF from "@/components/ProcessPdf";
+import HistoryTable from "@/components/Historytable";
+import { toast } from "sonner";
 
-export default function ReaderHome() {
-  const [activeSection, setActiveSection] = useState<"config" | "process" | "history">("config");
+export default function AppShell() {
+  const [tab, setTab] = useState("search");
+  const [searchTargets, setSearchTargets] = useState([
+    { name: "", description: "" },
+  ]);
+  const [lastProcessed, setLastProcessed] = useState(null);
+
+  const handlePDFProcessed = (file) => {
+    setLastProcessed(file);
+    toast.success("PDF processed successfully");
+    setTab("history");
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white max-w-6xl mx-auto p-6 flex flex-col gap-8">
-      <header className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold flex items-center gap-2">
-          <FileText className="h-8 w-8 text-primary" />
-          AI PDF Reader
-        </h1>
-        <nav className="flex space-x-4">
-          <Button
-            variant={activeSection === "config" ? "default" : "ghost"}
-            onClick={() => setActiveSection("config")}
-          >
-            Configure Search
-          </Button>
-          <Button
-            variant={activeSection === "process" ? "default" : "ghost"}
-            onClick={() => setActiveSection("process")}
-          >
-            Process Forms
-          </Button>
-          <Button
-            variant={activeSection === "history" ? "default" : "ghost"}
-            onClick={() => setActiveSection("history")}
-          >
-            History
-          </Button>
-        </nav>
-      </header>
+    <div className="max-w-5xl mx-auto px-5 py-10">
+      <h1 className="text-3xl font-bold mb-6">📄 PDF AI Reader</h1>
 
-      <main className="flex-1">
-        {activeSection === "config" && (
-          <Card className="p-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileSearch className="h-5 w-5 text-primary" />
-                Configure Search Targets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Placeholder: Your search target config UI goes here */}
-              <p className="text-muted-foreground">
-                Configure which PDF fields and data you want to extract.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="grid grid-cols-3 mb-6">
+          <TabsTrigger value="search">1. Search Targets</TabsTrigger>
+          <TabsTrigger value="process">2. Process PDF</TabsTrigger>
+          <TabsTrigger value="history">3. History</TabsTrigger>
+        </TabsList>
 
-        {activeSection === "process" && (
-          <Card className="p-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Process Forms
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Placeholder: Your form upload and processing UI goes here */}
-              <p className="text-muted-foreground">
-                Upload your PDF forms and trigger the AI extraction process.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <TabsContent value="search">
+          <SearchTargetEditor
+            targets={searchTargets}
+            setTargets={setSearchTargets}
+            setTab={setTab}
+          />
+  
+        </TabsContent>
 
-        {activeSection === "history" && (
-          <Card className="p-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5 text-primary" />
-                Processing History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Placeholder: Your processed document history UI goes here */}
-              <p className="text-muted-foreground">
-                Review previously processed documents and extracted data.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </main>
+        <TabsContent value="process">
+          <ProcessPDF
+            onSubmit={(file) => {
+              console.log("Processing PDF with:", searchTargets, file);
+              // simulate processing
+              setTimeout(() => handlePDFProcessed(file), 1000);
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <HistoryTable />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
