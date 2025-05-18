@@ -1,12 +1,17 @@
-// components/ProcessPDF.tsx
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { ChevronDown, UploadCloud } from "lucide-react";
+import { UploadCloud } from "lucide-react";
 
 export default function ProcessPDF({ onSubmit }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,7 +48,9 @@ export default function ProcessPDF({ onSubmit }) {
       <CardContent className="space-y-6">
         {/* Upload Section */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Upload new PDF</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            Upload new PDF
+          </label>
           <div className="relative border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg p-6 flex items-center justify-center text-center hover:border-black transition group cursor-pointer">
             <Input
               type="file"
@@ -54,18 +61,36 @@ export default function ProcessPDF({ onSubmit }) {
             <div className="flex flex-col items-center gap-2 text-zinc-500 group-hover:text-black dark:group-hover:text-white transition">
               <UploadCloud size={24} />
               <span className="text-sm">
-                {selectedFile ? selectedFile.name : "Click or drag a PDF file here to upload"}
+                {selectedFile
+                  ? selectedFile.name
+                  : "Click or drag a PDF file here to upload"}
               </span>
             </div>
           </div>
         </div>
 
+        {/* Process Button - moved up */}
+        <div className="pt-2 mb-2">
+          <Button
+            disabled={!selectedFile && !selectedExisting}
+            onClick={handleProcess}
+            className="w-full text-base font-semibold"
+          >
+            Process PDF
+          </Button>
+        </div>
+
         {/* Divider */}
-        <div className="text-center text-zinc-400 text-sm uppercase">or</div>
+        <div className="text-center text-zinc-400 text-xs uppercase tracking-wide pt-2 mb-1">
+  or select from previously uploaded
+</div>
+
 
         {/* Existing PDF List */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Select a previous PDF</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            Select a previous PDF
+          </label>
           <div className="flex flex-col gap-2">
             {uploadedFiles.map((fileName) => (
               <button
@@ -83,15 +108,6 @@ export default function ProcessPDF({ onSubmit }) {
             ))}
           </div>
         </div>
-
-        {/* Submit */}
-        <Button
-          disabled={!selectedFile && !selectedExisting}
-          onClick={handleProcess}
-          className="w-full"
-        >
-          Process PDF
-        </Button>
       </CardContent>
     </Card>
   );

@@ -57,7 +57,7 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                             onClick={() => setTab("process")}
                             className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition"
                         >
-                            Continue to Process
+                            Continue to Process PDF
                         </button>
                     </div>
                 </div>
@@ -68,7 +68,7 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                             key={index}
                             className="flex items-center gap-4 border rounded-lg p-4 bg-gray-50 dark:bg-zinc-800"
                         >
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 space-y-2 mb-2">
                                 <Input
                                     placeholder="Name of field (e.g., Invoice Number)"
                                     value={target.name}
