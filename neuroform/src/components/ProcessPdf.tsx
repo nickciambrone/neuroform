@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -18,7 +18,35 @@ export default function ProcessPDF({ onSubmit, setTab }) {
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
 
+  // Initializing search targets with selected state and fileType
+  const [searchTargets, setSearchTargets] = useState([
+    { name: "Invoice Number", fileType: "Invoice", value: "01221", selected: true },
+    { name: "Total Amount", fileType: "Invoice", value: 40000, selected: true },
+    { name: "Customer Name", fileType: "Invoice", value: "Nick Smith", selected: true },
+    { name: "Due Date", fileType: "Tax Waiver", value: "2025-06-01", selected: true },
+  ]);
+
+  // Slicers selection
+  const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
+
   const uploadedFiles = ["report_q1.pdf", "invoice_2023.pdf", "contract_signed.pdf"];
+
+  // Hook to handle updating selected targets when slicers change
+  useEffect(() => {
+    setSearchTargets((prev) =>
+      prev.map((target) => {
+        // If no slicers are selected, select all by default
+        if (selectedFileTypes.length === 0) {
+          return { ...target, selected: true };
+        }
+        // If target's file type is in selectedFileTypes, select it; otherwise, deselect
+        return {
+          ...target,
+          selected: selectedFileTypes.includes(target.fileType),
+        };
+      })
+    );
+  }, [selectedFileTypes]);
 
   const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -40,12 +68,30 @@ export default function ProcessPDF({ onSubmit, setTab }) {
       "Total Amount": "$1,320.50",
       "Customer Name": "Acme Corp",
       "Due Date": "2025-06-01",
+      "File Type": "Invoice", // All are of type "Invoice" for this example
     };
 
     setTimeout(() => {
       setExtractedData(mockExtracted);
-      // onSubmit(file); // don’t navigate yet — wait for user action
     }, 600);
+  };
+
+  const handleFileTypeSelection = (type: string) => {
+    if (selectedFileTypes.includes(type)) {
+      // Deselect the slicer (remove it from selectedFileTypes)
+      setSelectedFileTypes((prev) => prev.filter((t) => t !== type));
+    } else {
+      // If slicer is selected, add it to the selectedFileTypes
+      setSelectedFileTypes((prev) => [...prev, type]);
+    }
+  };
+
+  const handleFieldSelection = (key: string) => {
+    setSearchTargets((prev) =>
+      prev.map((target) =>
+        target.name === key ? { ...target, selected: !target.selected } : target
+      )
+    );
   };
 
   return (
@@ -137,17 +183,53 @@ export default function ProcessPDF({ onSubmit, setTab }) {
             {/* Title */}
             <h3 className="text-xl font-semibold mb-4">Extracted Data</h3>
 
+            {/* Slicer - File Type Filter */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
+                Filter by File Type
+              </label>
+              <div className="flex flex-wrap gap-4">
+                {["Invoice", "Tax Waiver", "Legal Notice"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => handleFileTypeSelection(type)}
+                    className={cn(
+                      "px-4 py-2 border rounded-md text-sm transition",
+                      selectedFileTypes.includes(type)
+                        ? "border-blue-500 bg-blue-100 dark:bg-blue-700"
+                        : "border-zinc-300 hover:border-black dark:hover:border-white"
+                    )}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Data Table */}
             <div className="border rounded-lg p-4 bg-zinc-50 dark:bg-zinc-800 text-sm space-y-2">
-              {Object.entries(extractedData).map(([key, value]) => (
+              {searchTargets.map((target) => (
                 <div
-                  key={key}
-                  className="flex justify-between border-b border-zinc-200 dark:border-zinc-700 pb-2"
+                  key={target.name}
+                  className={cn(
+                    "flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2",
+                    !target.selected 
+                      ? "opacity-50" // Ghosting the target if it doesn't match the slicer
+                      : ""
+                  )}
                 >
-                  <span className="text-zinc-500 dark:text-zinc-400">{key}</span>
-                  <span className="font-medium text-zinc-800 dark:text-zinc-100">
-                    {value}
-                  </span>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={target.selected || false}
+                      onChange={() => handleFieldSelection(target.name)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-zinc-500 dark:text-zinc-400">{target.name}</span>
+                  </label>
+                  {target.selected && (
+                    <span className="font-medium text-zinc-800 dark:text-zinc-100">{target.value}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -160,7 +242,7 @@ export default function ProcessPDF({ onSubmit, setTab }) {
               >
                 Download Data
               </Button>
-              <Button onClick={() => setTab("history")}>View Full History</Button>
+              <Button onClick={() => setTab("history")}>Record to log</Button>
             </div>
           </div>
         </div>

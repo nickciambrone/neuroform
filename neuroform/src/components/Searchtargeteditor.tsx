@@ -40,7 +40,7 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
         setConfirmDelete({ open: false, index: null });
     };
 
-    const addTarget = () => setTargets([...targets, { name: "", description: "" }]);
+    const addTarget = () => setTargets([...targets, { name: "", description: "", tags: "" }]);
 
     return (
         <>
@@ -75,9 +75,14 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                                     onChange={(e) => handleChange(index, "name", e.target.value)}
                                 />
                                 <Textarea
-                                    placeholder="Describe what you're trying to extract..."
+                                    placeholder="Describe what you're trying to extract... (optional)"
                                     value={target.description}
                                     onChange={(e) => handleChange(index, "description", e.target.value)}
+                                />
+                                <Input
+                                    placeholder="Document Type (optional)"
+                                    value={target.tags}
+                                    onChange={(e) => handleChange(index, "tags", e.target.value)}
                                 />
                             </div>
 
@@ -121,8 +126,6 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                         Add Target
                     </Button>
                 </CardContent>
-
-
             </Card>
 
             {/* Global delete confirmation fallback */}
