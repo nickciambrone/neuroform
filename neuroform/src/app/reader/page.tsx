@@ -28,7 +28,7 @@ export default function AppShell() {
         <TabsList className="grid grid-cols-3 mb-6">
           <TabsTrigger value="search">Search Targets</TabsTrigger>
           <TabsTrigger value="process">Process PDF</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="log">Log</TabsTrigger>
         </TabsList>
 
         <TabsContent value="search">
@@ -51,7 +51,7 @@ export default function AppShell() {
           />
         </TabsContent>
 
-        <TabsContent value="history">
+        <TabsContent value="log">
           <HistoryTable />
         </TabsContent>
       </Tabs>
