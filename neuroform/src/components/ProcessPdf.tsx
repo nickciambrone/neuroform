@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { UploadCloud, X } from "lucide-react";
+import { UploadCloud, X, Save } from "lucide-react"; // Import Save (floppy disk) icon
 
 export default function ProcessPDF({ onSubmit, setTab }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -50,6 +50,7 @@ export default function ProcessPDF({ onSubmit, setTab }) {
 
   const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    console.log(file);
     setSelectedFile(file);
     setSelectedExisting(null);
   };
@@ -181,13 +182,13 @@ export default function ProcessPDF({ onSubmit, setTab }) {
             </button>
 
             {/* Title */}
-            <h3 className="text-xl font-semibold mb-4">Extracted Data</h3>
+            
+            <h3 className="text-xl font-semibold mb-4">Extracted Data for {selectedExisting ? selectedExisting : selectedFile.name}</h3>
 
             {/* Slicer - File Type Filter */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
-                Filter by File Type
-              </label>
+              Select which search targets you want to download or save to the log. You can also select search targets based on File Type using the selectors.              </label>
               <div className="flex flex-wrap gap-4">
                 {["Invoice", "Tax Waiver", "Legal Notice"].map((type) => (
                   <button
@@ -213,7 +214,7 @@ export default function ProcessPDF({ onSubmit, setTab }) {
                   key={target.name}
                   className={cn(
                     "flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2",
-                    !target.selected 
+                    !target.selected
                       ? "opacity-50" // Ghosting the target if it doesn't match the slicer
                       : ""
                   )}
@@ -242,7 +243,13 @@ export default function ProcessPDF({ onSubmit, setTab }) {
               >
                 Download Data
               </Button>
-              <Button onClick={() => setTab("history")}>Record to log</Button>
+              <Button
+                onClick={() => setTab("history")}
+                className="flex items-center gap-2"
+              >
+                <Save size={16} /> {/* Floppy disk icon */}
+                Record to log
+              </Button>
             </div>
           </div>
         </div>
