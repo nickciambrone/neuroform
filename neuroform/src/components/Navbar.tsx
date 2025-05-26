@@ -1,38 +1,48 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "./AuthContext";
 import { Button } from "@/components/ui/button";
-import { UserCircle } from "lucide-react";
-export function Navbar() {
-    const isAuthenticated = false;
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase/config";
 
-    return (
-        <div className="px-5 py-6 flex justify-between items-center max-w-6xl mx-auto w-full">
+export default function Navbar() {
+  const { user } = useAuth();
 
-
-
-
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-                Neuroform
-            </h1>
-
-            <div className="flex items-center space-x-4">
-                {isAuthenticated ? (
-                    <UserCircle className="h-8 w-8 text-primary" />
-
-                ) : (
-                    <div className="flex space-x-3">
-                        <Button variant="ghost" size="sm" onClick={() => alert("Trigger login flow")}>
-                            Log In
-                        </Button>
-                        <Button variant="default" size="sm" onClick={() => alert("Trigger sign up flow")}>
-                            Sign Up
-                        </Button>
-                    </div>
-
-
-                )}
-            </div>
-        </div>
-    );
+  return (
+    <nav className="w-full border-b border-gray-200 dark:border-zinc-800 px-6 py-4 flex justify-between items-center bg-white dark:bg-black">
+      <Link href="/" className="text-xl font-semibold">
+        Neuroform
+      </Link>
+      <div className="flex gap-3 items-center">
+        {user ? (
+          <>
+            <span className="text-sm text-muted-foreground hidden sm:block">
+              {user.email}
+            </span>
+            <Button size="sm" onClick={() => signOut(auth)}>
+              Log out
+            </Button>
+          </>
+        ) : (
+          <>
+            <Link href="/login">
+              <Button size="sm" variant="default" className="rounded-full px-5 font-semibold">
+                Log in
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-full px-5 font-semibold border-black dark:border-white"
+              >
+                Sign up
+              </Button>
+            </Link>
+          </>
+        )}
+      </div>
+    </nav>
+  );
 }
