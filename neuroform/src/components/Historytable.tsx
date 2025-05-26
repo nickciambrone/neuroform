@@ -1,7 +1,7 @@
 // components/HistoryTable.tsx
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react"; // Correct download icon
 
 const mockData = [
   {
@@ -35,6 +35,16 @@ export default function HistoryTable() {
     setExpandedRow(prev => (prev === idx ? null : idx));
   };
 
+  const downloadExtractedData = (data: object, fileName: string) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${fileName.replace(/\.pdf$/, "")}_extracted_data.json`;
+    link.click();
+    URL.revokeObjectURL(url); // Clean up the URL object after download
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -49,16 +59,26 @@ export default function HistoryTable() {
                 <th className="p-2">Extracted Data</th>
                 <th className="p-2">User</th>
                 <th className="p-2">Date</th>
-                <th className="p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
               {mockData.map((entry, idx) => (
                 <tr key={idx} className="border-b border-gray-200 dark:border-zinc-700">
-                  <td className="p-2">{entry.fileName}</td>
+                  {/* File Column: File is now a downloadable link */}
+                  <td className="p-2">
+                    <a
+                      href={entry.downloadUrl}
+                      className="text-blue-600 hover:underline"
+                      download
+                    >
+                      {entry.fileName}
+                    </a>
+                  </td>
+
+                  {/* Extracted Data Column: Added download option */}
                   <td
                     className="p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700"
-                    onClick={() => toggleRow(idx)} // Click only on the cell to toggle
+                    onClick={() => toggleRow(idx)}
                   >
                     <div className="flex justify-between items-center">
                       <span className="text-gray-800 dark:text-gray-200 font-semibold">
@@ -77,16 +97,24 @@ export default function HistoryTable() {
                         {Object.entries(entry.extracted).map(([key, value], i) => (
                           <KeyValuePair key={i} keyText={key} valueText={String(value)} />
                         ))}
+                        {/* Corrected Download Button with Download Icon */}
+                        <button
+                          onClick={() => downloadExtractedData(entry.extracted, entry.fileName)}
+                          className="mt-4 p-3 border border-zinc-300 dark:border-zinc-700 bg-transparent rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                        >
+                          <Download size={16} /> {/* Download icon */}
+                          Download Extracted Data
+                        </button>
                       </div>
                     )}
                   </td>
+
+                  {/* User Column */}
                   <td className="p-2">{entry.user}</td>
+                  {/* Date Column */}
                   <td className="p-2">{entry.date}</td>
-                  <td className="p-2">
-                    <a href={entry.downloadUrl} className="text-blue-600 hover:underline">
-                      Download
-                    </a>
-                  </td>
+
+       
                 </tr>
               ))}
             </tbody>
