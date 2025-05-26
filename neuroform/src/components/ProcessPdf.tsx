@@ -244,7 +244,7 @@ export default function ProcessPDF({ onSubmit, setTab }) {
                 Download Data
               </Button>
               <Button
-                onClick={() => setTab("history")}
+                onClick={() => setTab("log")}
                 className="flex items-center gap-2"
               >
                 <Save size={16} /> {/* Floppy disk icon */}
