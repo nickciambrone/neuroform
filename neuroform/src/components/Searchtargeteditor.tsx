@@ -80,7 +80,7 @@ export default function SearchTargetEditor({ targets, setTargets, setTab }) {
                                     onChange={(e) => handleChange(index, "description", e.target.value)}
                                 />
                                 <Input
-                                    placeholder="Document Type (optional)"
+                                    placeholder="What type of document will you use this search target for? (e.g. Invoice/Tax Notice)... (optional)"
                                     value={target.tags}
                                     onChange={(e) => handleChange(index, "tags", e.target.value)}
                                 />
