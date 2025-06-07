@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase/config";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { createUserDocument } from "@/lib/firebase/users";
 
 export default function SignupPage() {
   const [step, setStep] = useState<"email" | "password">("email");
@@ -19,18 +20,16 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      router.push("/reader");
-    } catch (e: any) {
-      alert(e.message);
-    }
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    await createUserDocument(userCred.user);
+    router.push("/");
   };
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    router.push("/reader");
+    const result = await signInWithPopup(auth, provider);
+    await createUserDocument(result.user);
+    router.push('/');
   };
 
   return (
