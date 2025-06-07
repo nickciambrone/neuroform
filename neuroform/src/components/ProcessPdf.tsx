@@ -12,8 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { UploadCloud, X, Save } from "lucide-react"; // Import Save (floppy disk) icon
+import { savePDFForUser } from "@/lib/firebase/uploadPDF";
+import { useAuth } from "@/components/AuthContext";
 
 export default function ProcessPDF({ onSubmit, setTab }) {
+  const { user } = useAuth();
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
@@ -60,23 +64,33 @@ export default function ProcessPDF({ onSubmit, setTab }) {
     setSelectedFile(null);
   };
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     const file = selectedFile || selectedExisting;
     if (!file) return;
-
+  
+    if (user && selectedFile instanceof File) {
+      try {
+        await savePDFForUser(user.uid, selectedFile);
+      } catch (err) {
+        console.error("Error saving PDF to Firebase:", err);
+        // optional toast or error display here
+      }
+    }
+  
     const mockExtracted = {
       "Invoice Number": "INV-2024-0098",
       "Total Amount": "$1,320.50",
       "Customer Name": "Acme Corp",
       "Due Date": "2025-06-01",
-      "File Type": "Invoice", // All are of type "Invoice" for this example
+      "File Type": "Invoice",
     };
-
+  
     setTimeout(() => {
       setExtractedData(mockExtracted);
     }, 600);
   };
 
+  
   const handleFileTypeSelection = (type: string) => {
     if (selectedFileTypes.includes(type)) {
       // Deselect the slicer (remove it from selectedFileTypes)
