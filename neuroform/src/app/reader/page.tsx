@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export default function AppShell() {
   const [tab, setTab] = useState("search");
   const [searchTargets, setSearchTargets] = useState([
-    { name: "", description: "" },
+    { name: "", description: "", tags: "" },
   ]);
   const [lastProcessed, setLastProcessed] = useState(null);
 
