@@ -1,18 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import SearchTargetEditor from "@/components/Searchtargeteditor";
 import ProcessPDF from "@/components/ProcessPdf";
 import HistoryTable from "@/components/Historytable";
 import { toast } from "sonner";
+import { fetchAllTargets } from "@/lib/firebase/searchTargets";
+import { useAuth } from "@/components/AuthContext";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 export default function AppShell() {
   const [tab, setTab] = useState("search");
-  const [searchTargets, setSearchTargets] = useState([
-    { name: "", description: "", tags: "" },
-  ]);
+  const { user } = useAuth();
+
+  const [searchTargets, setSearchTargets] = useState(null);
+
   const [lastProcessed, setLastProcessed] = useState(null);
+
+  useEffect(() => {
+    const loadTargets = async () => {
+      if (!user) return;
+      const fetched = await fetchAllTargets(user.uid);
+
+      if (fetched.length === 0) {
+        const { createTarget } = await import("@/lib/firebase/searchTargets");
+        const ref = await createTarget(user.uid, {
+          name: "",
+          description: "",
+          tags: "",
+        });
+        setSearchTargets([ref]);
+      } else {
+        setSearchTargets(fetched);
+      }
+
+    };
+
+    loadTargets();
+  }, [user]);
 
   const handlePDFProcessed = (file) => {
     setLastProcessed(file);
@@ -32,12 +58,15 @@ export default function AppShell() {
         </TabsList>
 
         <TabsContent value="search">
-          <SearchTargetEditor
-            targets={searchTargets}
-            setTargets={setSearchTargets}
-            setTab={setTab}
-          />
-  
+          {searchTargets === null ? (
+            <LoadingSkeleton />
+          ) : (
+            <SearchTargetEditor
+              targets={searchTargets}
+              setTargets={setSearchTargets}
+              setTab={setTab}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="process">
