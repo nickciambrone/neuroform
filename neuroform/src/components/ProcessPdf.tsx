@@ -15,20 +15,14 @@ import { UploadCloud, X, Save } from "lucide-react"; // Import Save (floppy disk
 import { savePDFForUser } from "@/lib/firebase/uploadPDF";
 import { useAuth } from "@/components/AuthContext";
 
-export default function ProcessPDF({ onSubmit, setTab }) {
+export default function ProcessPDF({ setTab, searchTargets }) {
   const { user } = useAuth();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
 
-  // Initializing search targets with selected state and fileType
-  const [searchTargets, setSearchTargets] = useState([
-    { name: "Invoice Number", fileType: "Invoice", value: "01221", selected: true },
-    { name: "Total Amount", fileType: "Invoice", value: 40000, selected: true },
-    { name: "Customer Name", fileType: "Invoice", value: "Nick Smith", selected: true },
-    { name: "Due Date", fileType: "Tax Waiver", value: "2025-06-01", selected: true },
-  ]);
+
 
   // Slicers selection
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
@@ -36,21 +30,21 @@ export default function ProcessPDF({ onSubmit, setTab }) {
   const uploadedFiles = ["report_q1.pdf", "invoice_2023.pdf", "contract_signed.pdf"];
 
   // Hook to handle updating selected targets when slicers change
-  useEffect(() => {
-    setSearchTargets((prev) =>
-      prev.map((target) => {
-        // If no slicers are selected, select all by default
-        if (selectedFileTypes.length === 0) {
-          return { ...target, selected: true };
-        }
-        // If target's file type is in selectedFileTypes, select it; otherwise, deselect
-        return {
-          ...target,
-          selected: selectedFileTypes.includes(target.fileType),
-        };
-      })
-    );
-  }, [selectedFileTypes]);
+  // useEffect(() => {
+  //   setSearchTargets((prev) =>
+  //     prev.map((target) => {
+  //       // If no slicers are selected, select all by default
+  //       if (selectedFileTypes.length === 0) {
+  //         return { ...target, selected: true };
+  //       }
+  //       // If target's file type is in selectedFileTypes, select it; otherwise, deselect
+  //       return {
+  //         ...target,
+  //         selected: selectedFileTypes.includes(target.fileType),
+  //       };
+  //     })
+  //   );
+  // }, [selectedFileTypes]);
 
   const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -65,30 +59,34 @@ export default function ProcessPDF({ onSubmit, setTab }) {
   };
 
   const handleProcess = async () => {
-    const file = selectedFile || selectedExisting;
-    if (!file) return;
+    if (!selectedFile || !(selectedFile instanceof File)) return;
   
-    if (user && selectedFile instanceof File) {
+    // Save file to Firebase
+    if (user) {
       try {
         await savePDFForUser(user.uid, selectedFile);
       } catch (err) {
         console.error("Error saving PDF to Firebase:", err);
-        // optional toast or error display here
       }
     }
   
-    const mockExtracted = {
-      "Invoice Number": "INV-2024-0098",
-      "Total Amount": "$1,320.50",
-      "Customer Name": "Acme Corp",
-      "Due Date": "2025-06-01",
-      "File Type": "Invoice",
-    };
+    // Call extract API
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
   
-    setTimeout(() => {
-      setExtractedData(mockExtracted);
-    }, 600);
+      const res = await fetch("/api/extract", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await res.json();
+      setExtractedData(JSON.parse(data.result)); // assumes OpenAI returns JSON
+    } catch (err) {
+      console.error("Error calling extract API:", err);
+    }
   };
+  
 
   
   const handleFileTypeSelection = (type: string) => {
@@ -101,14 +99,14 @@ export default function ProcessPDF({ onSubmit, setTab }) {
     }
   };
 
-  const handleFieldSelection = (key: string) => {
-    setSearchTargets((prev) =>
-      prev.map((target) =>
-        target.name === key ? { ...target, selected: !target.selected } : target
-      )
-    );
-  };
-
+  // const handleFieldSelection = (key: string) => {
+  //   setSearchTargets((prev) =>
+  //     prev.map((target) =>
+  //       target.name === key ? { ...target, selected: !target.selected } : target
+  //     )
+  //   );
+  // };
+  console.log("Search Targets:", searchTargets);
   return (
     <>
       <Card>

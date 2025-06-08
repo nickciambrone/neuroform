@@ -1,6 +1,6 @@
-import { openai } from "@/lib/openai";
+import { openai } from "@/lib/openai/config";
 import { NextRequest, NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
+const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();

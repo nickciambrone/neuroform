@@ -40,11 +40,6 @@ export default function AppShell() {
     loadTargets();
   }, [user]);
 
-  const handlePDFProcessed = (file) => {
-    setLastProcessed(file);
-    toast.success("PDF processed successfully");
-    setTab("history");
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-5 py-10">
@@ -71,12 +66,9 @@ export default function AppShell() {
 
         <TabsContent value="process">
           <ProcessPDF
-            onSubmit={(file) => {
-              console.log("Processing PDF with:", searchTargets, file);
-              // simulate processing
-              setTimeout(() => handlePDFProcessed(file), 1000);
-            }}
+    
             setTab={setTab}
+            searchTargets={searchTargets}
           />
         </TabsContent>
 
