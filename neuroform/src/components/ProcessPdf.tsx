@@ -208,22 +208,51 @@ export default function ProcessPDF({ setTab, searchTargets }) {
             <div className="mb-4">
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
                 Select which search targets you want to download or save to the log.</label>
-      
+
             </div>
 
             {/* Data Table */}
             {/* Data Table for extractedData */}
+            {/* Data Table for extractedData with checkbox toggles */}
             <div className="border rounded-lg p-4 bg-zinc-50 dark:bg-zinc-800 text-sm space-y-2">
-              {Object.entries(extractedData).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2"
-                >
-                  <span className="text-zinc-500 dark:text-zinc-400">{key}</span>
-                  <span className="font-medium text-zinc-800 dark:text-zinc-100">{value}</span>
-                </div>
-              ))}
+              {Object.entries(extractedData).map(([key, value]) => {
+                const isSelected = extractedData[key]?.selected !== false;
+
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      "flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2",
+                      !isSelected && "opacity-50"
+                    )}
+                  >
+                    <label className="flex items-center gap-2 w-full">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() =>
+                          setExtractedData((prev) => ({
+                            ...prev,
+                            [key]: {
+                              value: typeof value === "object" ? value.value : value,
+                              selected: !isSelected,
+                            },
+                          }))
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-zinc-500 dark:text-zinc-400">{key}</span>
+                    </label>
+                    {isSelected && (
+                      <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                        {typeof value === "object" ? value.value : value}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
 
             {/* Actions */}
             <div className="flex justify-between gap-4 mt-6">
