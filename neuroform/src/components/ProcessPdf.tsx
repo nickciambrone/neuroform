@@ -17,6 +17,7 @@ import { useAuth } from "@/components/AuthContext";
 
 export default function ProcessPDF({ setTab, searchTargets }) {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
@@ -58,20 +59,15 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
   const handleProcess = async () => {
     if (!selectedFile || !(selectedFile instanceof File)) return;
-
-    // Save file to Firebase
-    if (user) {
-      try {
-        await savePDFForUser(user.uid, selectedFile);
-      } catch (err) {
-        console.error("Error saving PDF to Firebase:", err);
-      }
-    }
-
-    // Call extract API
+  
+    setIsLoading(true); // <-- Start loader
     try {
+      if (user) {
+        await savePDFForUser(user.uid, selectedFile);
+      }
+  
       let extractionPrompt = "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
-
+  
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
@@ -79,20 +75,22 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       }
       const formData = new FormData();
       formData.append("file", selectedFile);
-      formData.append("prompt", extractionPrompt); // add your custom payload here
-
+      formData.append("prompt", extractionPrompt);
+  
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await res.json();
-      console.log(JSON.parse(data.result))
-      setExtractedData(JSON.parse(data.result)); // assumes OpenAI returns JSON
+      setExtractedData(JSON.parse(data.result));
     } catch (err) {
       console.error("Error calling extract API:", err);
+    } finally {
+      setIsLoading(false); // <-- Stop loader
     }
   };
+  
 
 
 
@@ -295,6 +293,15 @@ export default function ProcessPDF({ setTab, searchTargets }) {
           </div>
         </div>
       )}
+      {isLoading && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-4 animate-pulse">
+      <div className="w-12 h-12 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+      <div className="text-white text-lg font-semibold tracking-wide">Analyzing PDF with AI...</div>
+    </div>
+  </div>
+)}
+
     </>
   );
 }
