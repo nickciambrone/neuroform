@@ -5,6 +5,7 @@ const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("file") as File;
+  const prompt = formData.get("prompt")?.toString() || "";
 
   if (!file) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
       { role: "system", content: "You are a helpful assistant." },
       {
         role: "user",
-        content: `Here is a notice:\n\n${text}\n\nPlease grab the following info: tax liability, notice date, sender, and amount due?`,
+        content: `Here is a pdf:\n\n${text}\n\n${prompt} \n DO NOT INCLUDE ANYTHING ELSE IN YOUR RESPONSE BESIDES THE JSON`,
       },
     ],
   });

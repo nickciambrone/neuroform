@@ -21,9 +21,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
-
-
-
+  const [ usedSearchTargets, setUsedSearchTargets ] = useState(searchTargets);
   // Slicers selection
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
 
@@ -31,7 +29,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
   // Hook to handle updating selected targets when slicers change
   // useEffect(() => {
-  //   setSearchTargets((prev) =>
+  //   setUsedSearchTargets((prev) =>
   //     prev.map((target) => {
   //       // If no slicers are selected, select all by default
   //       if (selectedFileTypes.length === 0) {
@@ -57,7 +55,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
     setSelectedExisting(fileName);
     setSelectedFile(null);
   };
-
+  
   const handleProcess = async () => {
     if (!selectedFile || !(selectedFile instanceof File)) return;
   
@@ -72,15 +70,24 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   
     // Call extract API
     try {
+      let extractionPrompt = "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
+    
+      for (const target of searchTargets) {
+        extractionPrompt += `Search target 1 name::${target.name}\n`;
+        extractionPrompt += `Search target 1 description::${target.description}\n`;
+  
+      }
       const formData = new FormData();
       formData.append("file", selectedFile);
-  
+      formData.append("prompt", extractionPrompt); // add your custom payload here
+
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
   
       const data = await res.json();
+      console.log(JSON.parse(data.result))
       setExtractedData(JSON.parse(data.result)); // assumes OpenAI returns JSON
     } catch (err) {
       console.error("Error calling extract API:", err);
@@ -100,13 +107,13 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   };
 
   // const handleFieldSelection = (key: string) => {
-  //   setSearchTargets((prev) =>
+  //   setUsedSearchTargets((prev) =>
   //     prev.map((target) =>
   //       target.name === key ? { ...target, selected: !target.selected } : target
   //     )
   //   );
   // };
-  console.log("Search Targets:", searchTargets);
+  
   return (
     <>
       <Card>
