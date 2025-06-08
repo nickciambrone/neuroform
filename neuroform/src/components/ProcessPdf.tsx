@@ -21,7 +21,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
-  const [ usedSearchTargets, setUsedSearchTargets ] = useState(searchTargets);
+  const [usedSearchTargets, setUsedSearchTargets] = useState(searchTargets);
   // Slicers selection
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
 
@@ -55,10 +55,10 @@ export default function ProcessPDF({ setTab, searchTargets }) {
     setSelectedExisting(fileName);
     setSelectedFile(null);
   };
-  
+
   const handleProcess = async () => {
     if (!selectedFile || !(selectedFile instanceof File)) return;
-  
+
     // Save file to Firebase
     if (user) {
       try {
@@ -67,15 +67,15 @@ export default function ProcessPDF({ setTab, searchTargets }) {
         console.error("Error saving PDF to Firebase:", err);
       }
     }
-  
+
     // Call extract API
     try {
       let extractionPrompt = "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
-    
+
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
-  
+
       }
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -85,7 +85,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await res.json();
       console.log(JSON.parse(data.result))
       setExtractedData(JSON.parse(data.result)); // assumes OpenAI returns JSON
@@ -93,9 +93,9 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       console.error("Error calling extract API:", err);
     }
   };
-  
 
-  
+
+
   const handleFileTypeSelection = (type: string) => {
     if (selectedFileTypes.includes(type)) {
       // Deselect the slicer (remove it from selectedFileTypes)
@@ -113,7 +113,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   //     )
   //   );
   // };
-  
+
   return (
     <>
       <Card>
@@ -201,55 +201,26 @@ export default function ProcessPDF({ setTab, searchTargets }) {
             </button>
 
             {/* Title */}
-            
+
             <h3 className="text-xl font-semibold mb-4">Extracted Data for {selectedExisting ? selectedExisting : selectedFile.name}</h3>
 
             {/* Slicer - File Type Filter */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
-              Select which search targets you want to download or save to the log. You can also select search targets based on File Type using the selectors.              </label>
-              <div className="flex flex-wrap gap-4">
-                {["Invoice", "Tax Waiver", "Legal Notice"].map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => handleFileTypeSelection(type)}
-                    className={cn(
-                      "px-4 py-2 border rounded-md text-sm transition",
-                      selectedFileTypes.includes(type)
-                        ? "border-blue-500 bg-blue-100 dark:bg-blue-700"
-                        : "border-zinc-300 hover:border-black dark:hover:border-white"
-                    )}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
+                Select which search targets you want to download or save to the log.</label>
+      
             </div>
 
             {/* Data Table */}
+            {/* Data Table for extractedData */}
             <div className="border rounded-lg p-4 bg-zinc-50 dark:bg-zinc-800 text-sm space-y-2">
-              {searchTargets.map((target) => (
+              {Object.entries(extractedData).map(([key, value]) => (
                 <div
-                  key={target.name}
-                  className={cn(
-                    "flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2",
-                    !target.selected
-                      ? "opacity-50" // Ghosting the target if it doesn't match the slicer
-                      : ""
-                  )}
+                  key={key}
+                  className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2"
                 >
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={target.selected || false}
-                      onChange={() => handleFieldSelection(target.name)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-zinc-500 dark:text-zinc-400">{target.name}</span>
-                  </label>
-                  {target.selected && (
-                    <span className="font-medium text-zinc-800 dark:text-zinc-100">{target.value}</span>
-                  )}
+                  <span className="text-zinc-500 dark:text-zinc-400">{key}</span>
+                  <span className="font-medium text-zinc-800 dark:text-zinc-100">{value}</span>
                 </div>
               ))}
             </div>
