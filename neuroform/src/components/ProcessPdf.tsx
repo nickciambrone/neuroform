@@ -258,10 +258,32 @@ export default function ProcessPDF({ setTab, searchTargets }) {
             <div className="flex justify-between gap-4 mt-6">
               <Button
                 variant="secondary"
-                onClick={() => alert("Download coming soon")}
+                onClick={() => {
+                  const selectedEntries = Object.entries(extractedData).filter(
+                    ([_, val]) => (typeof val === "object" ? val.selected !== false : true)
+                  );
+
+                  const csvContent =
+                    "data:text/csv;charset=utf-8," +
+                    selectedEntries
+                      .map(([key, val]) => {
+                        const value = typeof val === "object" ? val.value : val;
+                        return `"${key}","${value}"`;
+                      })
+                      .join("\n");
+
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", "extracted_data.csv");
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
               >
                 Download Data
               </Button>
+
               <Button
                 onClick={() => setTab("log")}
                 className="flex items-center gap-2"
