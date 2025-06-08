@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBnDEQpL1U_vDs1LUM9qGp-zJ2HTYLWvLI",
   authDomain: "neuroform-c81a8.firebaseapp.com",
   projectId: "neuroform-c81a8",
-  storageBucket: "neuroform-c81a8.appspot.com",
+  storageBucket: "neuroform-c81a8.firebasestorage.app",
   messagingSenderId: "896322498826",
   appId: "1:896322498826:web:37b5820a39dbdd8e8b4af3",
   measurementId: "G-S4PHL377W9"

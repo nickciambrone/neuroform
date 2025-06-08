@@ -3,6 +3,8 @@ import { collection, addDoc } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase/config";
 
 export async function savePDFForUser(userId: string, file: File) {
+  console.log("STORAGE SDK VERSION:", storage.app.options);
+console.log("File object:", file);
   const timestamp = Date.now();
   const storagePath = `users/${userId}/pdfs/${timestamp}_${file.name}`;
   const fileRef = ref(storage, storagePath);
