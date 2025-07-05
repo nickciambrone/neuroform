@@ -6,7 +6,7 @@ export async function createUserDocument(user: User) {
   if (!user) return;
 
   const userRef = doc(db, "users", user.uid);
-
+  console.log(user)
   await setDoc(userRef, {
     uid: user.uid,
     email: user.email,

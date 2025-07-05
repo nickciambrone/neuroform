@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
 import { UploadCloud, X, Save } from "lucide-react"; // Import Save (floppy disk) icon
 import { savePDFForUser } from "@/lib/firebase/uploadPDF";
 import { useAuth } from "@/components/AuthContext";
-
+import { listUserFiles } from "@/lib/firebase/listUserFiles";
+import { format } from "date-fns";
 export default function ProcessPDF({ setTab, searchTargets }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,24 +27,22 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   // Slicers selection
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
 
-  const uploadedFiles = ["report_q1.pdf", "invoice_2023.pdf", "contract_signed.pdf"];
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Hook to handle updating selected targets when slicers change
-  // useEffect(() => {
-  //   setUsedSearchTargets((prev) =>
-  //     prev.map((target) => {
-  //       // If no slicers are selected, select all by default
-  //       if (selectedFileTypes.length === 0) {
-  //         return { ...target, selected: true };
-  //       }
-  //       // If target's file type is in selectedFileTypes, select it; otherwise, deselect
-  //       return {
-  //         ...target,
-  //         selected: selectedFileTypes.includes(target.fileType),
-  //       };
-  //     })
-  //   );
-  // }, [selectedFileTypes]);
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchFiles = async () => {
+      try {
+        const files = await listUserFiles(user.uid);
+        setUploadedFiles(files);
+      } catch (err) {
+        console.error("Error loading uploaded files:", err);
+      }
+    };
+
+    fetchFiles();
+  }, [user]);
 
   const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -59,15 +58,15 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
   const handleProcess = async () => {
     if (!selectedFile || !(selectedFile instanceof File)) return;
-  
+
     setIsLoading(true); // <-- Start loader
     try {
       if (user) {
         await savePDFForUser(user.uid, selectedFile);
       }
-  
+
       let extractionPrompt = "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
-  
+
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
@@ -76,13 +75,14 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("prompt", extractionPrompt);
-  
+
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await res.json();
+      console.log("Extracted data:", data);
       setExtractedData(JSON.parse(data.result));
     } catch (err) {
       console.error("Error calling extract API:", err);
@@ -90,7 +90,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       setIsLoading(false); // <-- Stop loader
     }
   };
-  
+
 
 
 
@@ -167,22 +167,28 @@ export default function ProcessPDF({ setTab, searchTargets }) {
               Select a previous PDF
             </label>
             <div className="flex flex-col gap-2">
-              {uploadedFiles.map((fileName) => (
+              {uploadedFiles.map((file) => (
                 <button
-                  key={fileName}
-                  onClick={() => handleExistingSelect(fileName)}
+                  key={file.fullPath}
+                  onClick={() => handleExistingSelect(file.originalName)}
                   className={cn(
                     "text-left px-4 py-2 rounded-md border text-sm transition",
-                    selectedExisting === fileName
+                    selectedExisting === file.originalName
                       ? "border-black bg-zinc-100 dark:bg-zinc-700 dark:border-white"
                       : "border-zinc-300 hover:border-black dark:hover:border-white"
                   )}
                 >
-                  {fileName}
+                  <div className="flex flex-col">
+                    <span className="font-medium">{file.name}</span>
+                    <span className="text-xs text-zinc-500">
+                      {format(new Date(file.timeCreated), "MMM d, yyyy")} · {(file.size / 1024).toFixed(1)} KB
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
+
         </CardContent>
       </Card>
 
@@ -294,13 +300,13 @@ export default function ProcessPDF({ setTab, searchTargets }) {
         </div>
       )}
       {isLoading && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div className="flex flex-col items-center gap-4 animate-pulse">
-      <div className="w-12 h-12 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
-      <div className="text-white text-lg font-semibold tracking-wide">Analyzing PDF with AI...</div>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 animate-pulse">
+            <div className="w-12 h-12 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+            <div className="text-white text-lg font-semibold tracking-wide">Analyzing PDF with AI...</div>
+          </div>
+        </div>
+      )}
 
     </>
   );
