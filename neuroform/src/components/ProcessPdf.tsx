@@ -59,39 +59,53 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   };
 
   const handleProcess = async () => {
-    if (!selectedFile || !(selectedFile instanceof File)) return;
-
-    setIsLoading(true); // <-- Start loader
+    const fileToProcess = selectedFile;
+  
+    setIsLoading(true);
+  
     try {
-      if (user) {
-        await savePDFForUser(user.uid, selectedFile);
+      let file: File | null = fileToProcess;
+  
+      // If user selected an existing file from Firebase
+      if (!file && selectedExisting && user) {
+        const storage = (await import("firebase/storage")).getStorage;
+        const { ref, getBlob } = await import("firebase/storage");
+        const storageRef = ref(storage(), `users/${user.uid}/pdfs/${selectedExisting}`);
+        const blob = await getBlob(storageRef);
+  
+        // Recreate a File object from the Blob
+        file = new File([blob], selectedExisting, { type: "application/pdf" });
       }
-
-      let extractionPrompt = "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
-
+  
+      if (!file) return;
+  
+      let extractionPrompt =
+        "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
+  
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
-
       }
+  
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      formData.append("file", file);
       formData.append("prompt", extractionPrompt);
-
+  
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await res.json();
       console.log("Extracted data:", data);
       setExtractedData(JSON.parse(data.result));
     } catch (err) {
       console.error("Error calling extract API:", err);
     } finally {
-      setIsLoading(false); // <-- Stop loader
+      setIsLoading(false);
     }
   };
+  
 
 
 
