@@ -16,6 +16,8 @@ import { savePDFForUser } from "@/lib/firebase/uploadPDF";
 import { useAuth } from "@/components/AuthContext";
 import { listUserFiles } from "@/lib/firebase/listUserFiles";
 import { format } from "date-fns";
+import { recordExtractionLog } from "@/lib/firebase/recordExtractionLog";
+
 export default function ProcessPDF({ setTab, searchTargets }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,42 +62,42 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
   const handleProcess = async () => {
     const fileToProcess = selectedFile;
-  
+
     setIsLoading(true);
-  
+
     try {
       let file: File | null = fileToProcess;
-  
+
       // If user selected an existing file from Firebase
       if (!file && selectedExisting && user) {
         const storage = (await import("firebase/storage")).getStorage;
         const { ref, getBlob } = await import("firebase/storage");
         const storageRef = ref(storage(), `users/${user.uid}/pdfs/${selectedExisting}`);
         const blob = await getBlob(storageRef);
-  
+
         // Recreate a File object from the Blob
         file = new File([blob], selectedExisting, { type: "application/pdf" });
       }
-  
+
       if (!file) return;
-  
+
       let extractionPrompt =
         "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
-  
+
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
       }
-  
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("prompt", extractionPrompt);
-  
+
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await res.json();
       console.log("Extracted data:", data);
       setExtractedData(JSON.parse(data.result));
@@ -105,7 +107,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       setIsLoading(false);
     }
   };
-  
+
 
 
 
@@ -297,12 +299,36 @@ export default function ProcessPDF({ setTab, searchTargets }) {
               </Button>
 
               <Button
-                onClick={() => setTab("log")}
+                onClick={async () => {
+                  if (!user) return;
+
+                  const selectedEntries = Object.entries(extractedData).filter(
+                    ([_, val]) => (typeof val === "object" ? val.selected !== false : true)
+                  );
+
+                  const cleanedData: Record<string, string> = {};
+                  for (const [key, val] of selectedEntries) {
+                    cleanedData[key] = typeof val === "object" ? val.value : val;
+                  }
+
+                  try {
+                    await recordExtractionLog(
+                      user.uid,
+                      selectedExisting || selectedFile?.name || "unknown_file.pdf",
+                      cleanedData
+                    );
+
+                    setTab("log"); // optional: route user to the log tab
+                  } catch (err) {
+                    console.error("Error saving log:", err);
+                  }
+                }}
                 className="flex items-center gap-2"
               >
-                <Save size={16} /> {/* Floppy disk icon */}
+                <Save size={16} />
                 Record to log
               </Button>
+
             </div>
           </div>
         </div>
