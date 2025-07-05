@@ -24,6 +24,8 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
   const [usedSearchTargets, setUsedSearchTargets] = useState(searchTargets);
+  const [showAllFiles, setShowAllFiles] = useState(false);
+
   // Slicers selection
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
 
@@ -94,24 +96,6 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
 
 
-  const handleFileTypeSelection = (type: string) => {
-    if (selectedFileTypes.includes(type)) {
-      // Deselect the slicer (remove it from selectedFileTypes)
-      setSelectedFileTypes((prev) => prev.filter((t) => t !== type));
-    } else {
-      // If slicer is selected, add it to the selectedFileTypes
-      setSelectedFileTypes((prev) => [...prev, type]);
-    }
-  };
-
-  // const handleFieldSelection = (key: string) => {
-  //   setUsedSearchTargets((prev) =>
-  //     prev.map((target) =>
-  //       target.name === key ? { ...target, selected: !target.selected } : target
-  //     )
-  //   );
-  // };
-
   return (
     <>
       <Card>
@@ -167,7 +151,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
               Select a previous PDF
             </label>
             <div className="flex flex-col gap-2">
-              {uploadedFiles.map((file) => (
+              {(showAllFiles ? uploadedFiles : uploadedFiles.slice(0, 5)).map((file) => (
                 <button
                   key={file.fullPath}
                   onClick={() => handleExistingSelect(file.originalName)}
@@ -186,7 +170,17 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                   </div>
                 </button>
               ))}
+
+              {uploadedFiles.length > 5 && (
+                <button
+                  onClick={() => setShowAllFiles(!showAllFiles)}
+                  className="text-sm text-blue-600 dark:text-blue-400 mt-2 underline self-start"
+                >
+                  {showAllFiles ? "Show Less" : `Show All (${uploadedFiles.length})`}
+                </button>
+              )}
             </div>
+
           </div>
 
         </CardContent>
