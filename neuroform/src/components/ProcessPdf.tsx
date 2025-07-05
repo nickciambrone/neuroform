@@ -102,6 +102,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       console.log("Extracted data:", data);
       setExtractedData(JSON.parse(data.result));
     } catch (err) {
+      alert (err)
       console.error("Error calling extract API:", err);
     } finally {
       setIsLoading(false);

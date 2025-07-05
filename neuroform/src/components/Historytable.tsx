@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 import { fetchUserLogs } from "@/lib/firebase/getUserLogs";
+import { fetchUserMeta } from "@/lib/firebase/getUserMeta"; // <- import this
 
 const KeyValuePair = ({ keyText, valueText }: { keyText: string; valueText: string }) => (
   <div className="flex justify-between border-b border-gray-200 dark:border-zinc-700 p-1">
@@ -17,6 +18,7 @@ export default function HistoryTable() {
   const { user } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null); // <- Add this
 
   useEffect(() => {
     if (!user) return;
@@ -24,6 +26,8 @@ export default function HistoryTable() {
     const fetchLogs = async () => {
       const userLogs = await fetchUserLogs(user.uid);
       setLogs(userLogs);
+      const meta = await fetchUserMeta(user.uid); // <- Fetch email
+      setUserEmail(meta?.email || "Unknown");
     };
 
     fetchLogs();
@@ -102,7 +106,7 @@ export default function HistoryTable() {
                       </div>
                     )}
                   </td>
-                  <td className="p-2">{entry.user}</td>
+                  <td className="p-2">{userEmail}</td>
                   <td className="p-2">
                     {entry.timestamp
                       ? new Date(entry.timestamp.seconds * 1000).toLocaleDateString()
