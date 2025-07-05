@@ -1,27 +1,12 @@
-// components/HistoryTable.tsx
+"use client";
+
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
-import { ChevronDown, ChevronUp, Download } from "lucide-react"; // Correct download icon
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { useAuth } from "@/components/AuthContext";
+import { fetchUserLogs } from "@/lib/firebase/getUserLogs";
 
-const mockData = [
-  {
-    fileName: "Invoice_1234.pdf",
-    extracted: {
-      invoiceNumber: "1234",
-      amount: "$500",
-      clientName: "John Doe",
-      dueDate: "2025-06-01",
-      paymentStatus: "Paid",
-      // More fields here...
-    },
-    user: "jane@company.com",
-    date: "2025-05-17",
-    downloadUrl: "/invoices/1234.pdf"
-  },
-  // More rows...
-];
-
-const KeyValuePair = ({ keyText, valueText }: { keyText: string, valueText: string }) => (
+const KeyValuePair = ({ keyText, valueText }: { keyText: string; valueText: string }) => (
   <div className="flex justify-between border-b border-gray-200 dark:border-zinc-700 p-1">
     <span className="font-medium text-sm">{keyText}:</span>
     <span className="text-sm text-gray-800 dark:text-gray-300">{valueText}</span>
@@ -29,7 +14,20 @@ const KeyValuePair = ({ keyText, valueText }: { keyText: string, valueText: stri
 );
 
 export default function HistoryTable() {
+  const { user } = useAuth();
+  const [logs, setLogs] = useState<any[]>([]);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchLogs = async () => {
+      const userLogs = await fetchUserLogs(user.uid);
+      setLogs(userLogs);
+    };
+
+    fetchLogs();
+  }, [user]);
 
   const toggleRow = (idx: number) => {
     setExpandedRow(prev => (prev === idx ? null : idx));
@@ -42,9 +40,9 @@ export default function HistoryTable() {
     link.href = url;
     link.download = `${fileName.replace(/\.pdf$/, "")}_extracted_data.json`;
     link.click();
-    URL.revokeObjectURL(url); // Clean up the URL object after download
+    URL.revokeObjectURL(url);
   };
-
+  console.log(logs)
   return (
     <Card>
       <CardHeader>
@@ -62,27 +60,24 @@ export default function HistoryTable() {
               </tr>
             </thead>
             <tbody>
-              {mockData.map((entry, idx) => (
-                <tr key={idx} className="border-b border-gray-200 dark:border-zinc-700">
-                  {/* File Column: File is now a downloadable link */}
+              {logs.map((entry, idx) => (
+                <tr key={entry.id} className="border-b border-gray-200 dark:border-zinc-700">
                   <td className="p-2">
-                    <a
-                      href={entry.downloadUrl}
-                      className="text-blue-600 hover:underline"
-                      download
-                    >
-                      {entry.fileName}
-                    </a>
+                    {entry.downloadUrl ? (
+                      <a href={entry.downloadUrl} className="text-blue-600 hover:underline" download>
+                        {entry.fileName}
+                      </a>
+                    ) : (
+                      entry.fileName
+                    )}
                   </td>
-
-                  {/* Extracted Data Column: Added download option */}
                   <td
                     className="p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700"
                     onClick={() => toggleRow(idx)}
                   >
                     <div className="flex justify-between items-center">
                       <span className="text-gray-800 dark:text-gray-200 font-semibold">
-                        {expandedRow === idx ? 'Hide Data' : 'View Data'}
+                        {expandedRow === idx ? "Hide Data" : "View Data"}
                       </span>
                       <div className="ml-2">
                         {expandedRow === idx ? (
@@ -94,27 +89,25 @@ export default function HistoryTable() {
                     </div>
                     {expandedRow === idx && (
                       <div className="mt-2 space-y-2 transition-all duration-300 ease-in-out max-h-[300px] overflow-auto">
-                        {Object.entries(entry.extracted).map(([key, value], i) => (
+                        {Object.entries(entry.data).map(([key, value], i) => (
                           <KeyValuePair key={i} keyText={key} valueText={String(value)} />
                         ))}
-                        {/* Corrected Download Button with Download Icon */}
                         <button
-                          onClick={() => downloadExtractedData(entry.extracted, entry.fileName)}
+                          onClick={() => downloadExtractedData(entry.data, entry.fileName)}
                           className="mt-4 p-3 border border-zinc-300 dark:border-zinc-700 bg-transparent rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
                         >
-                          <Download size={16} /> {/* Download icon */}
+                          <Download size={16} />
                           Download Extracted Data
                         </button>
                       </div>
                     )}
                   </td>
-
-                  {/* User Column */}
                   <td className="p-2">{entry.user}</td>
-                  {/* Date Column */}
-                  <td className="p-2">{entry.date}</td>
-
-       
+                  <td className="p-2">
+                    {entry.timestamp
+                      ? new Date(entry.timestamp.seconds * 1000).toLocaleDateString()
+                      : ""}
+                  </td>
                 </tr>
               ))}
             </tbody>

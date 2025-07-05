@@ -302,8 +302,9 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                 onClick={async () => {
                   if (!user) return;
 
+                  // Only include keys where checkbox is selected
                   const selectedEntries = Object.entries(extractedData).filter(
-                    ([_, val]) => (typeof val === "object" ? val.selected !== false : true)
+                    ([_, val]) => typeof val === "object" ? val.selected !== false : true
                   );
 
                   const cleanedData: Record<string, string> = {};
@@ -318,7 +319,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                       cleanedData
                     );
 
-                    setTab("log"); // optional: route user to the log tab
+                    setTab("log"); // optional: jump to log screen
                   } catch (err) {
                     console.error("Error saving log:", err);
                   }
