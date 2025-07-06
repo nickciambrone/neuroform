@@ -82,7 +82,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       if (!file) return;
 
       let extractionPrompt =
-        "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. Here are the search targets:\n";
+        "Your task is to extract the following information from the PDF provided and return the data in JSON format like search_target_name:search_target_value. If the value is not there, just return not found. Here are the search targets:\n";
 
       for (const target of searchTargets) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
