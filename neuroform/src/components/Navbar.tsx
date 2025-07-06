@@ -37,7 +37,7 @@ export default function Navbar() {
                 variant="outline"
                 className="rounded-full px-5 font-semibold border-black dark:border-white"
               >
-                Sign up
+                Sign up for free
               </Button>
             </Link>
           </>

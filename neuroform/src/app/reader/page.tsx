@@ -9,12 +9,14 @@ import { toast } from "sonner";
 import { fetchAllTargets } from "@/lib/firebase/searchTargets";
 import { useAuth } from "@/components/AuthContext";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import SignedOutOverlay from "@/components/SignedOutOverlay";
 
 export default function AppShell() {
   const [tab, setTab] = useState("search");
   const { user } = useAuth();
 
   const [searchTargets, setSearchTargets] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
 
   const [lastProcessed, setLastProcessed] = useState(null);
 
@@ -52,29 +54,35 @@ export default function AppShell() {
           <TabsTrigger value="log">Log</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="search">
-          {searchTargets === null ? (
-            <LoadingSkeleton />
-          ) : (
-            <SearchTargetEditor
-              targets={searchTargets}
-              setTargets={setSearchTargets}
-              setTab={setTab}
-            />
-          )}
-        </TabsContent>
+        <div className="relative">
+          {!user && <SignedOutOverlay dismissed = {dismissed} setDismissed={setDismissed}/>}
 
-        <TabsContent value="process">
-          <ProcessPDF
-    
-            setTab={setTab}
-            searchTargets={searchTargets}
-          />
-        </TabsContent>
+          <div className={`${!user && !dismissed ? "pointer-events-none blur-[2px] select-none" : ""}`}>
+          <TabsContent value="search">
+              {searchTargets === null ? (
+                <LoadingSkeleton />
+              ) : (
+                <SearchTargetEditor
+                  targets={searchTargets}
+                  setTargets={setSearchTargets}
+                  setTab={setTab}
+                />
+              )}
+            </TabsContent>
 
-        <TabsContent value="log">
-          <HistoryTable />
-        </TabsContent>
+            <TabsContent value="process">
+              <ProcessPDF setTab={setTab} searchTargets={searchTargets} />
+            </TabsContent>
+
+            <TabsContent value="log">
+              <HistoryTable />
+            </TabsContent>
+          </div>
+        </div>
+
+
+
+
       </Tabs>
     </div>
   );
