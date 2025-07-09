@@ -64,6 +64,13 @@ export default function ProcessPDF({ setTab, searchTargets }) {
     const fileToProcess = selectedFile;
 
     setIsLoading(true);
+    //
+
+
+      if (user && selectedFile && !selectedExisting) {
+        await savePDFForUser(user.uid, selectedFile);
+      }
+    //
 
     try {
       let file: File | null = fileToProcess;
@@ -102,7 +109,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
       console.log("Extracted data:", data);
       setExtractedData(JSON.parse(data.result));
     } catch (err) {
-      alert (err)
+      alert(err)
       console.error("Error calling extract API:", err);
     } finally {
       setIsLoading(false);
@@ -218,8 +225,8 @@ export default function ProcessPDF({ setTab, searchTargets }) {
             {/* Title */}
 
             <h3 className="text-xl font-semibold mb-4">
-  Extracted Data for {(selectedExisting ?? selectedFile.name).split("_").slice(1).join("_")}
-</h3>
+              Extracted Data for {(selectedExisting ?? selectedFile.name).split("_").slice(1).join("_")}
+            </h3>
 
             {/* Slicer - File Type Filter */}
             <div className="mb-4">
@@ -303,11 +310,9 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
               <Button
                 onClick={async () => {
-                  if (!user) return;
-
-                  // Only include keys where checkbox is selected
+                  // Prepare cleaned data (selected only)
                   const selectedEntries = Object.entries(extractedData).filter(
-                    ([_, val]) => typeof val === "object" ? val.selected !== false : true
+                    ([_, val]) => (typeof val === "object" ? val.selected !== false : true)
                   );
 
                   const cleanedData: Record<string, string> = {};
@@ -315,16 +320,43 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                     cleanedData[key] = typeof val === "object" ? val.value : val;
                   }
 
-                  try {
-                    await recordExtractionLog(
-                      user.uid,
-                      selectedExisting || selectedFile?.name || "unknown_file.pdf",
-                      cleanedData
-                    );
+                  if (user) {
+                    // Signed in: Save to Firebase log
+                    try {
+                      await recordExtractionLog(
+                        user.uid,
+                        selectedExisting || selectedFile?.name || "unknown_file.pdf",
+                        cleanedData
+                      );
+                      setTab("log"); // switch to log tab
+                    } catch (err) {
+                      console.error("Error saving log:", err);
+                    }
+                  } else {
+                    // NOT signed in: save to localStorage logs array
+                    console.log('else fired')
+                    try {
+                      const LOCAL_LOGS_KEY = "pdf-reader-userLogs";
+                      const saved = localStorage.getItem(LOCAL_LOGS_KEY);
+                      const existingLogs = saved ? JSON.parse(saved) : [];
+                      
+                      // Create new log entry, include minimal info and timestamp
+                      const newLogEntry = {
+                        id: Date.now(), // unique enough for local
+                        fileName: selectedExisting || selectedFile?.name || "unknown_file.pdf",
+                        data: cleanedData,
+                        timestamp: { seconds: Math.floor(Date.now() / 1000) },
+                        downloadUrl: null,
+                      };
 
-                    setTab("log"); // optional: jump to log screen
-                  } catch (err) {
-                    console.error("Error saving log:", err);
+                      const updatedLogs = [newLogEntry, ...existingLogs];
+                      console.log(JSON.stringify(updatedLogs));
+                      localStorage.setItem(LOCAL_LOGS_KEY, JSON.stringify(updatedLogs));
+
+                      setTab("log"); // switch to log tab
+                    } catch (e) {
+                      console.error("Error saving log to localStorage:", e);
+                    }
                   }
                 }}
                 className="flex items-center gap-2"
@@ -332,6 +364,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                 <Save size={16} />
                 Record to log
               </Button>
+
 
             </div>
           </div>

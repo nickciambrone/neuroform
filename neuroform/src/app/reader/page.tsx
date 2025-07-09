@@ -14,11 +14,28 @@ import SignedOutOverlay from "@/components/SignedOutOverlay";
 const LOCAL_STORAGE_KEY = "pdf-reader-searchTargets";
 
 export default function AppShell() {
-  const [tab, setTab] = useState("search");
   const { user } = useAuth();
 
   const [searchTargets, setSearchTargets] = useState(null);
   const [dismissed, setDismissed] = useState(false);
+
+  const TAB_STORAGE_KEY = "pdf-reader-currentTab";
+
+  const [tab, setTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(TAB_STORAGE_KEY) || "search";
+    }
+    return "search";
+  });
+
+// Whenever the tab changes, save it to localStorage
+useEffect(() => {
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    // ignore errors
+  }
+}, [tab]);
 
   // Load targets depending on auth status
   useEffect(() => {
