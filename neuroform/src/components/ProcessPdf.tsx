@@ -95,7 +95,8 @@ export default function ProcessPDF({ setTab, searchTargets }) {
         extractionPrompt += `Search target 1 name::${target.name}\n`;
         extractionPrompt += `Search target 1 description::${target.description}\n`;
       }
-
+      extractionPrompt +=
+        "If there are multiple PDFs in the file, then you need to extract the data for ALL of them, and you need to indicate in the response which PDF each piece of data came from. You do this by prepending some identifier of the form with a hyphen to the search target like 'IRS Tax notice - notice date: april 3rd'. Do not include any additional text or explanation, just the JSON data.\n";
       const formData = new FormData();
       formData.append("file", file);
       formData.append("prompt", extractionPrompt);
