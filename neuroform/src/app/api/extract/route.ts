@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       { role: "system", content: "You are a helpful assistant." },
       {
         role: "user",
-        content: `Here is a pdf:\n\n${text}\n\n${prompt} \n DO NOT INCLUDE ANYTHING ELSE IN YOUR RESPONSE BESIDES THE JSON OR ELSE MY APP WILL CRASH!`,
+        content: `Here is a pdf:\n\n${text}\n\n${prompt} \n DO NOT INCLUDE ANYTHING ELSE IN YOUR RESPONSE BESIDES THE JSON, NO ADDITIONAL TEXT OR EXPLANATION, OR ELSE MY APP WILL CRASH!`,
       },
     ],
   });
