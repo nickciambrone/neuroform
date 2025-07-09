@@ -11,6 +11,8 @@ import { useAuth } from "@/components/AuthContext";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SignedOutOverlay from "@/components/SignedOutOverlay";
 
+const LOCAL_STORAGE_KEY = "pdf-reader-searchTargets";
+
 export default function AppShell() {
   const [tab, setTab] = useState("search");
   const { user } = useAuth();
@@ -18,30 +20,64 @@ export default function AppShell() {
   const [searchTargets, setSearchTargets] = useState(null);
   const [dismissed, setDismissed] = useState(false);
 
-  const [lastProcessed, setLastProcessed] = useState(null);
-
+  // Load targets depending on auth status
   useEffect(() => {
     const loadTargets = async () => {
-      if (!user) return;
-      const fetched = await fetchAllTargets(user.uid);
+      if (user) {
+        // Signed in: Load from Firebase
+        const fetched = await fetchAllTargets(user.uid);
 
-      if (fetched.length === 0) {
-        const { createTarget } = await import("@/lib/firebase/searchTargets");
-        const ref = await createTarget(user.uid, {
-          name: "",
-          description: "",
-          tags: "",
-        });
-        setSearchTargets([ref]);
+        if (fetched.length === 0) {
+          // Create a blank target in Firebase if none exist
+          const { createTarget } = await import("@/lib/firebase/searchTargets");
+          const ref = await createTarget(user.uid, {
+            name: "",
+            description: "",
+            tags: "",
+          });
+          setSearchTargets([ref]);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([ref]));
+        } else {
+          setSearchTargets(fetched);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(fetched));
+        }
       } else {
-        setSearchTargets(fetched);
+        // Not signed in: Load from localStorage
+        try {
+          const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setSearchTargets(parsed);
+              return;
+            }
+          }
+          // If no saved targets found, create one blank locally
+          const blank = [{ id: null, name: "", description: "", tags: "" }];
+          setSearchTargets(blank);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(blank));
+        } catch {
+          // On parse error, just set blank one
+          const blank = [{ id: null, name: "", description: "", tags: "" }];
+          setSearchTargets(blank);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(blank));
+        }
       }
-
     };
 
     loadTargets();
   }, [user]);
 
+  // Keep localStorage updated on every targets change
+  useEffect(() => {
+    if (searchTargets === null) return;
+    // Always sync localStorage no matter what (for offline ready)
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(searchTargets));
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [searchTargets]);
 
   return (
     <div className="max-w-5xl mx-auto px-5 py-10">
@@ -55,10 +91,10 @@ export default function AppShell() {
         </TabsList>
 
         <div className="relative">
-          {!user && <SignedOutOverlay dismissed = {dismissed} setDismissed={setDismissed}/>}
+          {!user && <SignedOutOverlay dismissed={dismissed} setDismissed={setDismissed} />}
 
           <div className={`${!user && !dismissed ? "pointer-events-none blur-[2px] select-none" : ""}`}>
-          <TabsContent value="search">
+            <TabsContent value="search">
               {searchTargets === null ? (
                 <LoadingSkeleton />
               ) : (
@@ -66,6 +102,7 @@ export default function AppShell() {
                   targets={searchTargets}
                   setTargets={setSearchTargets}
                   setTab={setTab}
+                  user={user} // pass user down to differentiate firebase/localStorage logic in SearchTargetEditor
                 />
               )}
             </TabsContent>
@@ -79,10 +116,6 @@ export default function AppShell() {
             </TabsContent>
           </div>
         </div>
-
-
-
-
       </Tabs>
     </div>
   );
