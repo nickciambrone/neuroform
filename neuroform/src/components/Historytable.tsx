@@ -64,15 +64,21 @@ export default function HistoryTable() {
     setExpandedRow((prev) => (prev === idx ? null : idx));
   };
 
-  const downloadExtractedData = (data: object, fileName: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const downloadExtractedData = (data: Record<string, any>, fileName: string) => {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+  
+    const csv = `${keys.join(",")}\n${values.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")}`;
+  
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${fileName.replace(/\.pdf$/, "")}_extracted_data.json`;
+    link.download = `${fileName.replace(/\.pdf$/, "")}_extracted_data.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
+  
 
   return (
     <Card>
