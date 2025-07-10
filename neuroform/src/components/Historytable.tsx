@@ -67,9 +67,9 @@ export default function HistoryTable() {
   const downloadExtractedData = (data: Record<string, any>, fileName: string) => {
     const keys = Object.keys(data);
     const values = Object.values(data);
-  
+
     const csv = `${keys.join(",")}\n${values.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")}`;
-  
+
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -78,7 +78,34 @@ export default function HistoryTable() {
     link.click();
     URL.revokeObjectURL(url);
   };
-  
+  const downloadFullLogAsCSV = () => {
+    if (!logs.length) return;
+
+    const headers = [
+      "File Name",
+      ...Object.keys(logs[0].data || {}).map((k) => `Data: ${k}`),
+      "User",
+      "Date",
+    ];
+
+    const rows = logs.map((entry) => [
+      entry.fileName,
+      ...Object.values(entry.data || {}).map((v) => `"${String(v).replace(/"/g, '""')}"`),
+      userEmail || "Unknown",
+      entry.timestamp ? new Date(entry.timestamp.seconds * 1000).toLocaleDateString() : "",
+    ]);
+
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "full_log.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   return (
     <Card>
@@ -92,6 +119,16 @@ export default function HistoryTable() {
           </p>
         ) : (
           <div className="overflow-x-auto">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={downloadFullLogAsCSV}
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2 shadow-sm"
+              >
+                <Download size={16} />
+                Download Full Log as CSV
+              </button>
+            </div>
+
             <table className="min-w-full text-sm text-left">
               <thead className="bg-gray-100 dark:bg-zinc-800">
                 <tr>

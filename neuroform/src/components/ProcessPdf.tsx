@@ -71,6 +71,10 @@ export default function ProcessPDF({ setTab, searchTargets }) {
         const response = await savePDFForUser(user.uid, selectedFile);
         setFileNameInFirebase(response);
       }
+      else if (selectedExisting){
+        setFileNameInFirebase(selectedExisting);
+
+      }
     //
 
     try {
