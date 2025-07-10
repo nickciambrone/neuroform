@@ -80,23 +80,29 @@ export default function HistoryTable() {
   };
   const downloadFullLogAsCSV = () => {
     if (!logs.length) return;
-
-    const headers = [
-      "File Name",
-      ...Object.keys(logs[0].data || {}).map((k) => `Data: ${k}`),
-      "User",
-      "Date",
-    ];
-
-    const rows = logs.map((entry) => [
-      entry.fileName,
-      ...Object.values(entry.data || {}).map((v) => `"${String(v).replace(/"/g, '""')}"`),
-      userEmail || "Unknown",
-      entry.timestamp ? new Date(entry.timestamp.seconds * 1000).toLocaleDateString() : "",
-    ]);
-
+  
+    const headers = ["File Name", "Extracted Data", "User", "Date"];
+  
+    const rows = logs.map((entry) => {
+      const fileName = entry.fileName;
+      const extractedData = Object.entries(entry.data || {})
+        .map(([k, v]) => `${k}: ${String(v).replace(/\n/g, " ").trim()}`)
+        .join("; ");
+      const user = userEmail || "Unknown";
+      const date = entry.timestamp
+        ? new Date(entry.timestamp.seconds * 1000).toLocaleDateString()
+        : "";
+  
+      return [
+        `"${fileName}"`,
+        `"${extractedData.replace(/"/g, '""')}"`,
+        `"${user}"`,
+        `"${date}"`,
+      ];
+    });
+  
     const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-
+  
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -105,6 +111,7 @@ export default function HistoryTable() {
     link.click();
     URL.revokeObjectURL(url);
   };
+  
 
 
   return (
