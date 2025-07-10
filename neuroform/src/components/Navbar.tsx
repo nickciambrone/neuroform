@@ -20,7 +20,15 @@ export default function Navbar() {
             <span className="text-sm text-muted-foreground hidden sm:block">
               {user.email}
             </span>
-            <Button size="sm" onClick={() => signOut(auth)}>
+            <Button
+              size="sm"
+              onClick={async () => {
+                await signOut(auth);
+                localStorage.removeItem("pdf-reader-userLogs");
+                localStorage.removeItem("pdf-reader-searchTargets");
+                // optional: window.location.reload(); if you want to force full state reset
+              }}
+            >
               Log out
             </Button>
           </>
