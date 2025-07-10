@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       { role: "system", content: "You are a helpful assistant." },
       {
         role: "user",
-        content: `Here is a pdf:\n\n${text}\n\n${prompt} \n DO NOT INCLUDE ANYTHING ELSE IN YOUR RESPONSE BESIDES THE JSON, NO ADDITIONAL TEXT OR EXPLANATION, OR ELSE MY APP WILL CRASH! EVEN IF YOU CAN'T DO WHAT I ASK, YOU STILL NEED TO RETURN A JSON WITH NO ADDITIONAL TEXT OR EXPLANATION. YOU KEEP FUCKING SENDING ADDITIONAL TEXT AND IT BREAKS THE APP. JSON ONLY DUDE`,
+        content: `Here is a pdf:\n\n${text}\n\n${prompt} \n DO NOT INCLUDE ANYTHING ELSE IN YOUR RESPONSE BESIDES THE JSON, NO ADDITIONAL TEXT OR EXPLANATION, OR ELSE MY APP WILL CRASH! EVEN IF YOU CAN'T DO WHAT I ASK, YOU STILL NEED TO RETURN A JSON WITH NO ADDITIONAL TEXT OR EXPLANATION. YOU KEEP FUCKING SENDING ADDITIONAL TEXT AND IT BREAKS THE APP. JSON ONLY DUDE. also, please only return values for the search targets, not the descriptions! the descriptions are simply to give more information on what the search target is asking for. so the format should be search_target: value_found_in_pdf only. `,
       },
     ],
   });

@@ -17,9 +17,10 @@ console.log("File object:", file);
 
   // Save metadata in Firestore
   await addDoc(collection(db, "users", userId, "savedDocuments"), {
-    fileName: file.name,
+    fileName: `${timestamp}_${file.name}`,
     storagePath,
     downloadURL,
     uploadedAt: timestamp,
   });
+  return `${timestamp}_${file.name}`;
 }

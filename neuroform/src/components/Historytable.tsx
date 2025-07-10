@@ -1,5 +1,5 @@
 "use client";
-
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
@@ -99,19 +99,29 @@ export default function HistoryTable() {
                 {logs.map((entry, idx) => (
                   <tr key={entry.id || idx} className="border-b border-gray-200 dark:border-zinc-700">
                     <td className="p-2">
-                      {entry.downloadUrl ? (
-                        <a
-                          href={entry.downloadUrl}
-                          className="text-blue-600 hover:underline"
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {entry.fileName}
-                        </a>
-                      ) : (
-                        entry.fileName
-                      )}
+                      <button
+                        onClick={async () => {
+                          try {
+                            const storage = getStorage();
+                            const fileRef = ref(storage, `users/${user?.uid}/pdfs/${entry.fileName}`);
+                            const url = await getDownloadURL(fileRef);
+
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = entry.fileName;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } catch (err) {
+                            console.error("Failed to download file", err);
+                            alert("Download failed. File may not exist or you're not authorized.");
+                          }
+                        }}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {entry.fileName.split("_").slice(1).join("_")}
+                      </button>
                     </td>
                     <td
                       className="p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700"

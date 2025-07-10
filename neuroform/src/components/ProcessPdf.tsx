@@ -32,7 +32,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]); // Slicers deselected by default
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
-
+  const [fileNameInFirebase, setFileNameInFirebase] = useState('');
   useEffect(() => {
     if (!user) return;
 
@@ -68,7 +68,8 @@ export default function ProcessPDF({ setTab, searchTargets }) {
 
 
       if (user && selectedFile && !selectedExisting) {
-        await savePDFForUser(user.uid, selectedFile);
+        const response = await savePDFForUser(user.uid, selectedFile);
+        setFileNameInFirebase(response);
       }
     //
 
@@ -326,7 +327,7 @@ export default function ProcessPDF({ setTab, searchTargets }) {
                     try {
                       await recordExtractionLog(
                         user.uid,
-                        selectedExisting || selectedFile?.name || "unknown_file.pdf",
+                        fileNameInFirebase || selectedFile?.name || "unknown_file.pdf",
                         cleanedData
                       );
                       setTab("log"); // switch to log tab
