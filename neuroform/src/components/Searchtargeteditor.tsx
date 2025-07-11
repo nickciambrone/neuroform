@@ -43,21 +43,6 @@ export default function SearchTargetEditor({ targets, setTargets, setTab, user }
       const updated = [...targets];
       let modified = false;
 
-      for (let i = 0; i < updated.length; i++) {
-        const target = updated[i];
-        const hasNoId = !target.id;
-        const hasContent = target.name || target.description || target.tags;
-
-        if (hasNoId && hasContent) {
-          const ref = await createTarget(user.uid, target);
-          updated[i] = ref;
-          modified = true;
-        } else if (hasNoId && !hasContent) {
-          const ref = await createTarget(user.uid, { name: "", description: "", tags: "" });
-          updated[i] = ref;
-          modified = true;
-        }
-      }
 
       if (modified) {
         setTargets(updated);

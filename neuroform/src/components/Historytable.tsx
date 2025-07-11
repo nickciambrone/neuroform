@@ -171,7 +171,7 @@ export default function HistoryTable() {
                         }}
                         className={user ? "text-blue-600 hover:underline" : ''}
                       >
-                        {entry.fileName.split("_").slice(1).join("_")}
+                        {user ? entry.fileName.split("_").slice(1).join("_") : 'Sign in for free file storage'}
                       </button>
                     </td>
                     <td
