@@ -18,6 +18,7 @@ export default function AppShell() {
 
   const [searchTargets, setSearchTargets] = useState(null);
   const [dismissed, setDismissed] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const TAB_STORAGE_KEY = "pdf-reader-currentTab";
 
@@ -125,7 +126,7 @@ useEffect(() => {
             </TabsContent>
 
             <TabsContent value="process">
-              <ProcessPDF setTab={setTab} searchTargets={searchTargets} />
+              <ProcessPDF setTab={setTab} searchTargets={searchTargets} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>
             </TabsContent>
 
             <TabsContent value="log">

@@ -22,7 +22,6 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
   const [usedSearchTargets, setUsedSearchTargets] = useState(searchTargets);
