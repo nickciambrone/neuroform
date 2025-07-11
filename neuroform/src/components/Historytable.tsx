@@ -151,6 +151,7 @@ export default function HistoryTable() {
                     <td className="p-2">
                       <button
                         onClick={async () => {
+                          if (!user){return}
                           try {
                             const storage = getStorage();
                             const fileRef = ref(storage, `users/${user?.uid}/pdfs/${entry.fileName}`);
@@ -168,7 +169,7 @@ export default function HistoryTable() {
                             alert("Download failed. File may not exist or you're not authorized.");
                           }
                         }}
-                        className="text-blue-600 hover:underline"
+                        className={user ? "text-blue-600 hover:underline" : ''}
                       >
                         {entry.fileName.split("_").slice(1).join("_")}
                       </button>

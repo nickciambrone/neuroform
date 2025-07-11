@@ -230,7 +230,7 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
             {/* Title */}
 
             <h3 className="text-xl font-semibold mb-4">
-              Extracted Data for {(selectedExisting ? selectedExisting.split("_").slice(1).join("_") : selectedFile.name)}
+              Extracted Data for {(selectedExisting ? selectedExisting.split("_").slice(1).join("_") : selectedFile ? selectedFile.name : '')}
             </h3>
 
             {/* Slicer - File Type Filter */}
