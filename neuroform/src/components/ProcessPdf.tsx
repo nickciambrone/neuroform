@@ -230,7 +230,7 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
             {/* Title */}
 
             <h3 className="text-xl font-semibold mb-4">
-              Extracted Data for {(selectedExisting ?? selectedFile.name).split("_").slice(1).join("_")}
+              Extracted Data for {(selectedExisting ? selectedExisting.split("_").slice(1).join("_") : selectedFile.name)}
             </h3>
 
             {/* Slicer - File Type Filter */}
@@ -363,6 +363,7 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
                       console.error("Error saving log to localStorage:", e);
                     }
                   }
+                  setSelectedFile(null);
                 }}
                 className="flex items-center gap-2"
               >
