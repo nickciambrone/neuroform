@@ -18,7 +18,7 @@ import { listUserFiles } from "@/lib/firebase/listUserFiles";
 import { format } from "date-fns";
 import { recordExtractionLog } from "@/lib/firebase/recordExtractionLog";
 
-export default function ProcessPDF({ setTab, searchTargets }) {
+export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSelectedFile }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
