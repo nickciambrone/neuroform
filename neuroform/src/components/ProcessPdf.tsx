@@ -60,34 +60,26 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
     setSelectedFile(null);
   };
 
-  const handleProcess = async () => {
+   const handleProcess = async () => {
     const fileToProcess = selectedFile;
-
     setIsLoading(true);
-    //
+    setErrorInfo(null);
 
-
-      if (user && selectedFile && !selectedExisting) {
-        const response = await savePDFForUser(user.uid, selectedFile);
-        setFileNameInFirebase(response);
-      }
-      else if (selectedExisting){
-        setFileNameInFirebase(selectedExisting);
-
-      }
-    //
+    if (user && selectedFile && !selectedExisting) {
+      const response = await savePDFForUser(user.uid, selectedFile);
+      setFileNameInFirebase(response);
+    } else if (selectedExisting) {
+      setFileNameInFirebase(selectedExisting);
+    }
 
     try {
       let file: File | null = fileToProcess;
 
-      // If user selected an existing file from Firebase
       if (!file && selectedExisting && user) {
         const storage = (await import("firebase/storage")).getStorage;
         const { ref, getBlob } = await import("firebase/storage");
         const storageRef = ref(storage(), `users/${user.uid}/pdfs/${selectedExisting}`);
         const blob = await getBlob(storageRef);
-
-        // Recreate a File object from the Blob
         file = new File([blob], selectedExisting, { type: "application/pdf" });
       }
 
@@ -102,10 +94,11 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
       }
       extractionPrompt +=
         "If there are multiple PDFs in the file, then you need to extract the data for ALL of them, and you need to indicate in the response which PDF each piece of data came from. You do this by prepending some identifier of the form with a hyphen to the search target like 'IRS Tax notice - notice date: april 3rd'. Do not include any additional text or explanation, just the JSON data.\n";
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("prompt", extractionPrompt);
-      
+
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
@@ -120,7 +113,7 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
         });
         return;
       }
-      
+
       try {
         setExtractedData(JSON.parse(data.result));
       } catch (e) {
@@ -129,10 +122,12 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
           response: data?.result || "Invalid JSON response",
         });
       }
-      
     } catch (err) {
-      alert(err)
       console.error("Error calling extract API:", err);
+      setErrorInfo({
+        prompt: "Internal error during PDF processing.",
+        response: err.message || "Unknown error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -140,37 +135,57 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
 
 
 
-
-
   return (
     <>
-    {errorInfo && (
+{errorInfo && (
   <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-center px-4">
-    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 animate-in fade-in slide-in-from-bottom duration-300">
+    <div className="relative w-full max-w-xl bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 animate-in fade-in slide-in-from-bottom duration-300">
       <button
         onClick={() => setErrorInfo(null)}
         className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition"
       >
         <X size={20} />
       </button>
-      <h3 className="text-xl font-semibold mb-4 text-red-600 dark:text-red-400">
-        ❌ Error Processing PDF
-      </h3>
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Prompt Sent to AI:</h4>
-        <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
-          {errorInfo.prompt}
-        </pre>
-      </div>
-      <div>
-        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Response from AI:</h4>
-        <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
-          {errorInfo.response}
-        </pre>
-      </div>
+
+      {errorInfo.prompt === "Internal error during PDF processing." ? (
+        <>
+          <h3 className="text-xl font-semibold mb-2 text-red-600 dark:text-red-400">
+            🛑 PDF Processing Failed
+          </h3>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">
+            Something went wrong while trying to analyze your file. This can happen if the file is corrupted, too large, or not a valid PDF.
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+            {errorInfo.response}
+          </p>
+        </>
+      ) : (
+        <>
+          <h3 className="text-xl font-semibold mb-4 text-red-600 dark:text-red-400">
+            ❌ Error Processing PDF
+          </h3>
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              Prompt Sent to AI:
+            </h4>
+            <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+              {errorInfo.prompt}
+            </pre>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              Response from AI:
+            </h4>
+            <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+              {errorInfo.response}
+            </pre>
+          </div>
+        </>
+      )}
     </div>
   </div>
 )}
+
 
       <Card>
         <CardHeader>
