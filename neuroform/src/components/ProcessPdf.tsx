@@ -21,6 +21,7 @@ import { recordExtractionLog } from "@/lib/firebase/recordExtractionLog";
 export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSelectedFile }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorInfo, setErrorInfo] = useState<null | { prompt: string; response: string }>(null);
 
   const [selectedExisting, setSelectedExisting] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any | null>(null);
@@ -104,15 +105,31 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
       const formData = new FormData();
       formData.append("file", file);
       formData.append("prompt", extractionPrompt);
-
+      
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
       });
 
       const data = await res.json();
-      console.log("Extracted data:", data);
-      setExtractedData(JSON.parse(data.result));
+
+      if (!res.ok) {
+        setErrorInfo({
+          prompt: extractionPrompt,
+          response: data?.result || JSON.stringify(data),
+        });
+        return;
+      }
+      
+      try {
+        setExtractedData(JSON.parse(data.result));
+      } catch (e) {
+        setErrorInfo({
+          prompt: extractionPrompt,
+          response: data?.result || "Invalid JSON response",
+        });
+      }
+      
     } catch (err) {
       alert(err)
       console.error("Error calling extract API:", err);
@@ -127,6 +144,34 @@ export default function ProcessPDF({ setTab, searchTargets, selectedFile, setSel
 
   return (
     <>
+    {errorInfo && (
+  <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-center px-4">
+    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 animate-in fade-in slide-in-from-bottom duration-300">
+      <button
+        onClick={() => setErrorInfo(null)}
+        className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition"
+      >
+        <X size={20} />
+      </button>
+      <h3 className="text-xl font-semibold mb-4 text-red-600 dark:text-red-400">
+        ❌ Error Processing PDF
+      </h3>
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Prompt Sent to AI:</h4>
+        <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+          {errorInfo.prompt}
+        </pre>
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Response from AI:</h4>
+        <pre className="text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+          {errorInfo.response}
+        </pre>
+      </div>
+    </div>
+  </div>
+)}
+
       <Card>
         <CardHeader>
           <CardTitle>Upload or Select a PDF</CardTitle>
