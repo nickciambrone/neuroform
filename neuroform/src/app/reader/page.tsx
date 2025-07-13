@@ -10,11 +10,12 @@ import { fetchAllTargets } from "@/lib/firebase/searchTargets";
 import { useAuth } from "@/components/AuthContext";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SignedOutOverlay from "@/components/SignedOutOverlay";
+import FullPageLoader from "@/components/FullPageLoader";
 
 const LOCAL_STORAGE_KEY = "pdf-reader-searchTargets";
 
 export default function AppShell() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth(); // now available
 
   const [searchTargets, setSearchTargets] = useState(null);
   const [dismissed, setDismissed] = useState(false);
@@ -29,14 +30,14 @@ export default function AppShell() {
     return "search";
   });
 
-// Whenever the tab changes, save it to localStorage
-useEffect(() => {
-  try {
-    localStorage.setItem(TAB_STORAGE_KEY, tab);
-  } catch {
-    // ignore errors
-  }
-}, [tab]);
+  // Whenever the tab changes, save it to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, tab);
+    } catch {
+      // ignore errors
+    }
+  }, [tab]);
 
   // Load targets depending on auth status
   useEffect(() => {
@@ -96,8 +97,16 @@ useEffect(() => {
       // ignore localStorage errors
     }
   }, [searchTargets]);
-
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <FullPageLoader />
+      </div>
+    );
+  }
+  
   return (
+    
     <div className="max-w-5xl mx-auto px-5 py-10">
       <h1 className="text-3xl font-bold mb-6">📄 PDF AI Reader</h1>
 
@@ -109,9 +118,12 @@ useEffect(() => {
         </TabsList>
 
         <div className="relative">
-          {!user && <SignedOutOverlay dismissed={dismissed} setDismissed={setDismissed} />}
+          {!loading && !user && (
+            <SignedOutOverlay dismissed={dismissed} setDismissed={setDismissed} />
+          )}
 
-          <div className={`${!user && !dismissed ? "pointer-events-none blur-[2px] select-none" : ""}`}>
+          <div className={`${!loading && !user && !dismissed ? "pointer-events-none blur-[2px] select-none" : ""}`}>
+
             <TabsContent value="search">
               {searchTargets === null ? (
                 <LoadingSkeleton />
@@ -126,7 +138,7 @@ useEffect(() => {
             </TabsContent>
 
             <TabsContent value="process">
-              <ProcessPDF setTab={setTab} searchTargets={searchTargets} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>
+              <ProcessPDF setTab={setTab} searchTargets={searchTargets} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />
             </TabsContent>
 
             <TabsContent value="log">
